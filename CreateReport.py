@@ -8,10 +8,15 @@ import io
 import base64
 
 # COMANDO PIP PARA INSTALAR AS BIBLIOTECAS.
-# pip install matplotlib beautifulsoup4 pandas
+# pip install matplotlib beautifulsoup4 pandas openpyxl
 
 class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
+
+        # ! TESTE ! #
+        if os.path.isfile(".\\Another Archives\\execution.log"):
+            print('LOG REMOVIDO!\n')
+            os.remove(".\\Another Archives\\execution.log")
 
         logging.basicConfig(filename=f'.\\Another Archives\\execution.log', level=logging.INFO, format='%(message)s')
         
@@ -104,14 +109,13 @@ class CreateReport():
                 self.logger.warning(f"[WARNING] Tag não encontrada <{_tag} id='{_id}'> | Texto não inserido na tag.")
                 self.countErros += 1
                 return False
-
             return self.soup
 
         except Exception as err:
             self.logger.error(f"[ERROR] Falha ao inserir texto na tag html | {str(err)}\n")
             self.countErros += 1
             return False
-
+   
    # -- Criando Seções do Relatório -- #
     def InsertPendingExpensesSection(self):
         try:
@@ -120,17 +124,27 @@ class CreateReport():
                 dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
                 dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
                 dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
-                total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist() # round( , 2 )
-                total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist() # round( , 2 )
-                text = f"Valor total a ser pago por Pedro = R${round(total_pedro[0] , 2)}, e a soma das despesas para outros responsavéis = R${round(total_outros[0] , 2)}."
+                total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist()
+                total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist()
+             
+                self.InsertTextHtmlTag(
+                                        _tag = "p", 
+                                        _text = f"VALOR TOTAL A SER PAGO: R${dataFrame['Valor'].sum()}.", 
+                                        _id = "DespesasPendente"
+                                    )
                 
                 self.InsertTextHtmlTag(
                                         _tag = "p", 
-                                        _text = text, 
-                                        _id = "DespesasPendente"
+                                        _text = f'VALOR TOTAL A SER PAGO PEDRO: R${round(sum(total_pedro), 2)}.', 
+                                        _id = "DespesasPendente1"
                                     )
+                
+                self.InsertTextHtmlTag(
+                                    _tag='p', 
+                                    _text=f'VALOR TOTAL A SER PAGO TERCEIROS: R${round(sum(total_outros), 2)}.', 
+                                    _id='DespesasPendente2'
+                                )
                 return
-            
             InsertSectionText()
 
             # -- TABELA DA SEÇÃO -- #
@@ -157,7 +171,6 @@ class CreateReport():
                         tr_tag.append(td_tag)
 
                 return self.soup
-            
             InsertSectionTable()
 
             # -- GRÁFICO DE DESPESA POR OPERAÇÕES -- #
@@ -167,50 +180,44 @@ class CreateReport():
                     dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Responsavel', 'Situação'])
                     dataFrame = dataFrame.groupby(['Operação'], as_index=False)['Valor'].sum()
                     
-                    # Dados para o gráfico de barras
-                    Operacao = dataFrame['Operação'].tolist()
+                    Operacao = dataFrame['Operação'].tolist() # Dados para o gráfico de barras
                     Valor = dataFrame['Valor'].tolist()
-
-                    # Definindo cores com base nas operações
                     cores = []
                     for op in Operacao:
-                        if op == 'Nunbank Crédito':
-                            cores.append('purple')
+                        if op == 'Nubank Crédito':
+                            cores.append('#2d69d9')
                         elif op == 'Pix Nubank':
-                            cores.append('black')
+                            cores.append('#4c81e3')
                         elif op == 'Débito Nubank':
-                            cores.append('blue')
+                            cores.append('#6a98ec') 
                         elif op == 'Boleto Nubank':
-                            cores.append('red')
+                            cores.append('#89b0f6') 
                         else:
-                            cores.append('gray')  # Cor padrão para outras operações
+                            cores.append('#a7c7ff')  
 
-                    # Criar o gráfico de barras com cores definidas
-                    plt.bar(Operacao, Valor, color=cores, linewidth=0)
-
-                    # Adicionar título e rótulos aos eixos
-                    plt.title('Despesa por Categoria')
-
-                    # Adicionando os valores acima das barras
-                    for i in range(len(Operacao)):
+                    plt.bar(Operacao, Valor, color=cores, linewidth=0) # Criar o gráfico de barras com cores definidas
+                    plt.title('MÉTODO PAGAMENTO') # Adicionar título e rótulos aos eixos
+                    ax = plt.gca() # Desativando Bordas do Gráfico
+                    ax.spines['top'].set_visible(False)
+                    ax.spines['right'].set_visible(False)
+                    ax.spines['bottom'].set_visible(False)
+                    ax.spines['left'].set_visible(False)
+                    plt.yticks([]) # Removendo legenda eixo y
+                    
+                    for i in range(len(Operacao)): # Adicionando os valores acima das barras
                         plt.text(Operacao[i], Valor[i], str(round(Valor[i],2)), ha='center', va='bottom')
 
-                    # Salvar o gráfico temporariamente
-                    temp_file = io.BytesIO()
+                    temp_file = io.BytesIO() # Salvar o gráfico temporariamente
                     plt.savefig(temp_file, format='png')
                     temp_file.seek(0)
 
-                    # Exibir o gráfico
-                    # plt.show()
+                    # plt.show() # Exibir o gráfico
                     base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
+                    plt.close() # Fechar o gráfico para liberar recursos
 
-                    # Fechar o gráfico para liberar recursos
-                    plt.close()
-
-                    # Adiciona gráfico no template.
-                    self.soup = self.EditHtmlAtribute(
+                    self.soup = self.EditHtmlAtribute( # Adiciona gráfico no template.
                             _tag="img",
-                            _id="OperationsGraphic",
+                            _id="OperationsGraphicPendingExpenses",
                             _atributo="src",
                             _valorAtributo=f"data:image/png;base64,{base64_encoding}",
                         )
@@ -220,10 +227,44 @@ class CreateReport():
                     self.logger.error(f'[ERRO] Falha ao criar grafico despesas por operação (DespesasPendentes) | {str(err)}\n')
                     self.countErros += 1
                     return False
-
             InsertBarsGraphic()
 
             # -- GRÁFICO DE PIZZA DESPESA POR CATEGORIA -- #
+            def InsertPizzaBarGraphic():
+                try:
+                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
+                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Responsavel', 'Descrição', 'Operação', 'Situação'])
+                    dataFrame = dataFrame.groupby(['Categoria'], as_index=False)['Valor'].sum()
+
+                    labels = dataFrame['Categoria'].tolist() # Dados para o gráfico de pizza
+                    quantidades = dataFrame['Valor'].tolist()
+
+                    plt.pie(quantidades, labels=labels, autopct='%1.1f%%') # Criar o gráfico de pizza
+                    plt.title('CATEGORIAS') # Adicionar um título
+                    
+                    temp_file = io.BytesIO() # Salvar o gráfico temporariamente
+                    plt.savefig(temp_file, format='png')
+                    temp_file.seek(0)
+
+                    # plt.show() # Exibir o gráfico
+                    base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
+                    plt.close() # Fechar o gráfico para liberar recursos
+
+                    self.soup = self.EditHtmlAtribute( # Adiciona gráfico no template.
+                            _tag="img",
+                            _id="PizzaGraphicPendingExpenses",
+                            _atributo="src",
+                            _valorAtributo=f"data:image/png;base64,{base64_encoding}",
+                        )
+                    
+                    self.logger.info('[INFO] Grafico de Barras Criado/Inserido (PendingExpensesSection)')
+                    return True
+
+                except Exception as err:
+                    self.logger.error(f'[ERROR] Falha ao criar/inserir grafico de pizza. (PendingExpensesSection) | {err}\n')
+                    self.countErros += 1
+                    return False
+            InsertPizzaBarGraphic()
 
         except Exception as err:
             self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
