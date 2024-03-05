@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+import io
+import base64
 
 class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
@@ -122,7 +124,8 @@ class CreateReport():
    
     def InsertPendingExpensesSection(self):
         try:
-            def InsertPendingExpensesText():
+            # -- TEXTO DA SEÇÃO -- #
+            def InsertSectionText():
                 dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
                 dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
                 dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
@@ -137,9 +140,10 @@ class CreateReport():
                                     )
                 return
             
-            InsertPendingExpensesText()
+            InsertSectionText()
 
-            def InsertPendingExpensesTable():
+            # -- TABELA DA SEÇÃO -- #
+            def InsertSectionTable():
                 # Filtra o DataFrame da classe
                 dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
                 dataFrame = dataFrame.drop(columns=['Situação', 'Descrição', 'Faturamento', 'Data Compra'])
@@ -163,7 +167,72 @@ class CreateReport():
 
                 return self.soup
             
-            InsertPendingExpensesTable()
+            InsertSectionTable()
+
+            # -- GRÁFICO DE DESPESA POR OPERAÇÕES -- #
+            def InsertBarsGraphic():
+                try:
+                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação']=='Pendente']
+                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Responsavel', 'Situação'])
+                    dataFrame = dataFrame.groupby(['Operação'], as_index=False)['Valor'].sum()
+                    
+                    # Dados para o gráfico de barras
+                    Operacao = dataFrame['Operação'].tolist()
+                    Valor = dataFrame['Valor'].tolist()
+
+                    # Definindo cores com base nas operações
+                    cores = []
+                    for op in Operacao:
+                        if op == 'Nunbank Crédito':
+                            cores.append('purple')
+                        elif op == 'Pix Nubank':
+                            cores.append('black')
+                        elif op == 'Débito Nubank':
+                            cores.append('blue')
+                        elif op == 'Boleto Nubank':
+                            cores.append('red')
+                        else:
+                            cores.append('gray')  # Cor padrão para outras operações
+
+                    # Criar o gráfico de barras com cores definidas
+                    plt.bar(Operacao, Valor, color=cores, linewidth=0)
+
+                    # Adicionar título e rótulos aos eixos
+                    plt.title('Despesa por Categoria')
+
+                    # Adicionando os valores acima das barras
+                    for i in range(len(Operacao)):
+                        plt.text(Operacao[i], Valor[i], str(round(Valor[i],2)), ha='center', va='bottom')
+
+                    # Salvar o gráfico temporariamente
+                    temp_file = io.BytesIO()
+                    plt.savefig(temp_file, format='png')
+                    temp_file.seek(0)
+
+                    # Exibir o gráfico
+                    # plt.show()
+                    base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
+
+                    # Fechar o gráfico para liberar recursos
+                    plt.close()
+
+                    # Adiciona gráfico no template.
+                    self.soup = self.EditHtmlAtribute(
+                            _tag="img",
+                            _id="OperationsGraphic",
+                            _atributo="src",
+                            _valorAtributo=f"data:image/png;base64,{base64_encoding}",
+                        )
+
+                    return True
+                except Exception as err:
+                    self.logger.error(f'[ERRO] Falha ao criar grafico despesas por operação (DespesasPendentes) | {str(err)}\n')
+                    self.countErros += 1
+                    return False
+
+            InsertBarsGraphic()
+
+            # -- GRÁFICO DE PIZZA DESPESA POR CATEGORIA -- #
 
         except Exception as err:
             self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')

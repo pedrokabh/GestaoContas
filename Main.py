@@ -9,7 +9,7 @@ def main(XlsxPath):
     CreateReport(
                     _xlsxPath = XlsxPath,
                     _templatePath = ".\\report.html",
-                    _destinyFile = "Gestão Contas.html"
+                    _destinyFile = "Relatório Gerado.html"
                 )
 
 if __name__ == "__main__":
