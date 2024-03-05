@@ -2,6 +2,7 @@ import os
 import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
+import pandas as pd
 
 class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
@@ -15,17 +16,30 @@ class CreateReport():
         self.XlsxPath = _xlsxPath
         self.nameReport = _destinyFile
         self.reportDestinyPath = ".\\Generated Reports\\"
-        
+        self.DespesasPagas_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pagas")
+        self.DespesasPendentes_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pendentes")
+        self.Carteira_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Carteira")
+        print(self.Carteira_df)
         # Criação Relatório.
-        self.logger.info('')
-        self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
-        self.soup = self.CreateSoupObject()
-        self.InsertTitleReport(_title=f"Relatório Gestão Contas")
-        self.InsertFooterReport()
-        self.SaveSoupAsHtml()
+        # self.logger.info('')
+        # self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
+        # self.soup = self.CreateSoupObject()
+        # self.InsertTitleReport(_title=f"Relatório Gestão Contas")
+        # self.InsertFooterReport()
+        # self.SaveSoupAsHtml()
 
         return
     
+    # -- Pandas -- #
+    def read_excel_sheet(self, _xlsx_path, _sheet_name):
+        try:
+            df = pd.read_excel(_xlsx_path, sheet_name=_sheet_name)
+            self.logger.info(f"[INFO] Data Frame ({_sheet_name}) Criado com sucesso.")
+            return df
+        except Exception as e:
+            self.logger.error(f"[ERRO] Falha ao gerar data frame. Arquivo ({_xlsx_path}) SheetName ({_sheet_name}) | {str(e)}\n")
+            return False
+        
     # -- Utillizando biblioteca BeatifulSoup --
     def CreateSoupObject(self):
         try:
@@ -59,7 +73,6 @@ class CreateReport():
             self.countErros += 1
             return False
         
-    # -- Editando HTML -- #
     def EditHtmlAtribute(self, _tag, _id, _atributo, _valorAtributo):
         try:
             elemento = self.soup.find(_tag, id=_id)
