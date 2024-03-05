@@ -27,8 +27,8 @@ class CreateReport():
         self.logger.info('')
         self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
         self.soup = self.CreateSoupObject()
-        self.InsertHeaderTitleReport(_title=f"Relatório Gestão Contas")
-        self.InsertFooterReport()
+        self.InsertTextHtmlTag(_tag="td", _text=f"Relatório Gestão Contas", _id="HeaderTitle") # Inserindo título de cabeçalho.
+        self.InsertTextHtmlTag(_tag="td", _text=f'Este é um e-mail automático, favor não responder. | Relatório gerado em: ({datetime.now().strftime("%d/%m/%Y")})', _id="Footer") # Adicionando mensagem de rodapé.
         self.InsertPendingExpensesSection()
         self.SaveSoupAsHtml()
 
@@ -110,18 +110,6 @@ class CreateReport():
             return False
 
    # -- Criando Seções do Relatório -- #
-    def InsertHeaderTitleReport(self, _title):
-        self.InsertTextHtmlTag(_tag="td", _text=_title, _id="HeaderTitle")
-    
-    def InsertFooterReport(self):
-        try:
-            text = f'Este é um e-mail automático, favor não responder. | Relatório gerado em: ({datetime.now().strftime("%d/%m/%Y")})'
-            self.InsertTextHtmlTag(_tag="td", _text=text, _id="Footer")
-
-            self.logger.info(f"[INFO] Text Footer Criado e inserido no relatorio. | CountError: ({self.countErros})")
-        except Exception as err:
-            self.logger.error(f"[ERROR] Falha ao criar/inserir Texto  Footer no relatorio. | {str(err)}\n")
-   
     def InsertPendingExpensesSection(self):
         try:
             # -- TEXTO DA SEÇÃO -- #
