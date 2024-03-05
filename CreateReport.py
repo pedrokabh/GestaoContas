@@ -3,6 +3,7 @@ import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
 
 class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
@@ -19,14 +20,15 @@ class CreateReport():
         self.DespesasPagas_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pagas")
         self.DespesasPendentes_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pendentes")
         self.Carteira_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Carteira")
-        print(self.Carteira_df)
+
         # Criação Relatório.
-        # self.logger.info('')
-        # self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
-        # self.soup = self.CreateSoupObject()
-        # self.InsertTitleReport(_title=f"Relatório Gestão Contas")
-        # self.InsertFooterReport()
-        # self.SaveSoupAsHtml()
+        self.logger.info('')
+        self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
+        self.soup = self.CreateSoupObject()
+        self.InsertHeaderTitleReport(_title=f"Relatório Gestão Contas")
+        self.InsertFooterReport()
+        self.InsertPendingExpensesSection()
+        self.SaveSoupAsHtml()
 
         return
     
@@ -106,8 +108,8 @@ class CreateReport():
             return False
 
    # -- Criando Seções do Relatório -- #
-    def InsertTitleReport(self, _title):
-        self.InsertTextHtmlTag(_tag="td", _text=_title, _id="TitleReport")
+    def InsertHeaderTitleReport(self, _title):
+        self.InsertTextHtmlTag(_tag="td", _text=_title, _id="HeaderTitle")
     
     def InsertFooterReport(self):
         try:
@@ -117,13 +119,53 @@ class CreateReport():
             self.logger.info(f"[INFO] Text Footer Criado e inserido no relatorio. | CountError: ({self.countErros})")
         except Exception as err:
             self.logger.error(f"[ERROR] Falha ao criar/inserir Texto  Footer no relatorio. | {str(err)}\n")
-
-    def NubankCreditoSection(self):
+   
+    def InsertPendingExpensesSection(self):
         try:
-            text = "Este é um e-mail automático, favor não responder. | Relatório gerado em: (05/03/2024)"
-            self.InsertTextHtmlTag(_tag="td", _text=text, _id="Footer")
+            def InsertPendingExpensesText():
+                dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
+                dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
+                dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
+                total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist() # round( , 2 )
+                total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist() # round( , 2 )
+                text = f"Valor total a ser pago por Pedro = R${round(total_pedro[0] , 2)}, e a soma das despesas para outros responsavéis = R${round(total_outros[0] , 2)}."
+                
+                self.InsertTextHtmlTag(
+                                        _tag = "p", 
+                                        _text = text, 
+                                        _id = "DespesasPendente"
+                                    )
+                return
+            
+            InsertPendingExpensesText()
 
-            self.logger.info(f"[INFO] Sessão Nubank Criada e inserida no relatorio. | CountError: ({self.countErros})")
+            def InsertPendingExpensesTable():
+                # Filtra o DataFrame da classe
+                dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
+                dataFrame = dataFrame.drop(columns=['Situação', 'Descrição', 'Faturamento', 'Data Compra'])
+                dataFrame = dataFrame.groupby(['Categoria', 'Operação', 'Responsavel'], as_index=False)['Valor'].sum()
+
+                # Encontra a tag tbody onde os dados serão inseridos
+                tbody_tag = self.soup.find('tbody', {'id': 'TablePendencias'})
+                # Limpa qualquer conteúdo existente na tbody
+                tbody_tag.clear()
+
+                # Loop pelos dados do DataFrame e insere-os na tabela HTML
+                for index, row in dataFrame.iterrows():
+                    tr_tag = self.soup.new_tag('tr')
+                    tbody_tag.append(tr_tag)
+
+                    # Adiciona os valores de Categoria, Operação, Valor e Responsável a cada tr
+                    for column in ['Categoria', 'Operação', 'Valor', 'Responsavel']:
+                        td_tag = self.soup.new_tag('td')
+                        td_tag.string = str(row[column])
+                        tr_tag.append(td_tag)
+
+                return self.soup
+            
+            InsertPendingExpensesTable()
+
         except Exception as err:
-            self.logger.error(f"[ERROR] Falha ao criar/inserir sessao nubank no relatorio. | ")
-        
+            self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
+            self.countErros += 1
+            return False

@@ -58,53 +58,63 @@
                 <td valign="top" align="center" style="padding:15pt 5pt 15pt 5pt">
                     <table border="0" cellspacing="0" cellpadding="0" width="75%" style="border-collapse:collapse;border:none">
                         <thead class="header">
-                            <tr><td class="header" style="text-align: center;" id="TitleReport">{Title}</td></tr>
+                            <tr><td class="header" style="text-align: center;" id="HeaderTitle">{Title}</td></tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td class="body">
+                                    <!-- CONTEUDO DO RELATORIO--> 
                                     <div>
+                                        <!-- TITULO DO RELATORIO --> 
                                         <p>
                                             <table width="100%">
                                                 <tr>
                                                     <td style="text-align: center;">
-                                                        <h2 id="ReportTitle"></h2>
+                                                        <h2 id="ReportTitle">ANÁLISE DE CONTAS</h2>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </p>
+                                        
+                                        <!-- DESPESAS PENDENTES --> 
                                         <p>
                                             <table width="100%">
                                                 <tr>
-                                                    <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 2%; margin-top:2%">NUBANK CRÉDITO</h3></td>
+                                                    <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 2%; margin-top:2%">DESPESAS PENDENTES</h3></td>
                                                     <td style="text-align: center;" width="40%">&nbsp;</td>
 
                                                 </tr>
                                                 <tr>
                                                     <td style="text-align: justify;" width="40%">
-                                                        <p id="DealDescription">{DealDescription}</p>
+                                                        <p id="DespesasPendente">{TextoDespesasPendentes}</p>
                                                         <table border="1" style="width: 100%; margin-top: 7%;">
                                                             <thead style="text-align: center;">
                                                                 <tr>
-                                                                    <td style="padding: 3px;">Categoria</td><td style=" padding: 3px;">Qtde.</td>
+                                                                    <td style="padding: 3px;">Categoria</td>
+                                                                    <td style=" padding: 3px;">Operação</td>
+                                                                    <td style=" padding: 3px;">Valor</td>
+                                                                    <td style=" padding: 3px;">Responsavel</td>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody style="font-size: 10pt;" id="TableChamados">
+                                                            <tbody style="font-size: 10pt;" id="TablePendencias">
                                                             </tbody>
                                                         </table>
                                                     </td>
                                                     <td style="text-align: center;" width="60%">
-                                                        <img width="538" height="403" style="width:5.6041in;height:4.1979in" alt="Horas Consumidas" id="SpendHoursGraphic" src=""/>
+                                                        <img width="400" height="400" style="width:4in;height:4in" alt="Divida por Operacao" id="OperationsGraphic" src=""/>
+                                                    </td>
+                                                    <td style="text-align: center;" width="60%">
+                                                        <img width="400" height="400" style="width:4in;height:4in" alt="Divida por Operacao" id="OperationsGraphic" src=""/>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </p>
-
                                         <hr>
-
-                                        <p>
+                                        
+                                        <!-- DESPESAS PAGAS --> 
+                                        <!-- <p>
                                             <table width="100%">
-                                                <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 4%; margin-top:4%;">ACORDO DE NÍVEL DE ATENDIMENTO - SLA</h3></td>
+                                                <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 4%; margin-top:4%;">DESPESAS PAGAS</h3></td>
                                                 <tr>
                                                     <td style="text-align: justify;" width="40%">
                                                         <p id="SlaDescription">{SlaDescription}</p>
@@ -122,18 +132,17 @@
                                                 </tr>
                                             </table>
                                         </p>
-
-                                        <hr>
-
-                                        <p>
+                                        <hr> -->
+                                        
+                                        <!-- VISÃO GERAL--> 
+                                        <!-- <p>
                                             <table width="100%">
-                                                <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 4%; margin-top:4%">HISTÓRICO DE CHAMADOS</h3></td>
+                                                <td style="text-align: center;" colspan="3"><h3 style="margin-bottom: 4%; margin-top:4%">VISÃO GERAL</h3></td>
                                                 <tr>
                                                     <td style="text-align: justify;" width="40%">
                                                         <p id="MonthRecord">O gráfico ao lado apresenta o número total de chamados abertos, juntamente com as horas consumidas, ao longo dos últimos meses.</p>
                                                     </td>
                                                     <td style="text-align: center;" width="60%">
-                                                        <!-- Gráfico histórico seis meses -->
                                                         <p style="margin:0;">
                                                             <img width="437" height="329" style="width:4.552in;height:3.427in" alt="Historico Chamados" id="HistoryGraphic" src=""/>
                                                         </p>
@@ -142,8 +151,8 @@
                                                
                                             </table>
                                         </p>
-
-                                        <hr>
+                                        <hr> -->
+                                        
                                     </div>
                                 </td>
                             </tr>
