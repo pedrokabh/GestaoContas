@@ -1,11 +1,14 @@
 import os
 import logging
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup 
 from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
 import base64
+
+# COMANDO PIP PARA INSTALAR AS BIBLIOTECAS.
+# pip install matplotlib beautifulsoup4 pandas
 
 class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
