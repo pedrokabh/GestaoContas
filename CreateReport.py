@@ -32,13 +32,11 @@ class CreateReport():
         self.Carteira_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Carteira")
 
         # Criação Relatório.
-        self.logger.info('')
         self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
         self.soup = self.CreateSoupObject()
-        self.InsertTextHtmlTag(_tag="td", _text=f"Relatório Gestão Contas", _id="HeaderTitle") # Inserindo título de cabeçalho.
-        self.InsertTextHtmlTag(_tag="td", _text=f'Este é um e-mail automático, favor não responder. | Relatório gerado em: ({datetime.now().strftime("%d/%m/%Y")})', _id="Footer") # Adicionando mensagem de rodapé.
         self.InsertPendingExpensesSection()
         self.SaveSoupAsHtml()
+        self.logger.info(f'[INFO][SUCESS] Finalizada Montagem do Relatorio.')
 
         return
     
@@ -119,6 +117,16 @@ class CreateReport():
    # -- Criando Seções do Relatório -- #
     def InsertPendingExpensesSection(self):
         try:
+            self.InsertTextHtmlTag(
+                _tag="td", _text=f"Relatório Gestão Contas", 
+                _id="HeaderTitle"
+            ) # Inserindo título de cabeçalho.
+
+            self.InsertTextHtmlTag(
+                _tag="td", 
+                _text=f'Este é um e-mail automático, favor não responder. | Relatório gerado em: ({datetime.now().strftime("%d/%m/%Y")})', _id="Footer"
+            ) # Adicionando mensagem de rodapé.
+        
             # -- TEXTO DA SEÇÃO -- #
             def InsertSectionText():
                 dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']

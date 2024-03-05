@@ -1,10 +1,4 @@
 {   
-    // !!! PALETA DE COR !!!
-    // Azul mais escuro #2d69d9
-    // tom mais claro | #4c81e3
-    // tom mais claro | #6a98ec
-    // tom mais claro | #89b0f6
-    // tom mais claro | #a7c7ff
 
     "version": "0.2.0",
     "configurations": [
