@@ -6,7 +6,11 @@ def main(XlsxPath):
 
     # print(f'Arquivo (Gestão Contas.xlsx) ({XlsxPath})')
     os.system('cls')
-    CreateReport(_xlsxPath = XlsxPath)
+    CreateReport(
+                    _xlsxPath = XlsxPath,
+                    _templatePath = ".\\report.html",
+                    _destinyFile = "Gestão Contas.html"
+                )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
