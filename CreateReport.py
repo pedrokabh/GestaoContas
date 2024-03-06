@@ -115,7 +115,7 @@ class CreateReport():
             return False
    
    # -- Criando Seções do Relatório -- #
-    def InsertPendingExpensesSection(self):
+    def InsertPendingSection(self):
         try:
             self.InsertTextHtmlTag(
                 _tag="td", _text=f"Relatório Gestão Contas", 
@@ -276,5 +276,31 @@ class CreateReport():
 
         except Exception as err:
             self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
+            self.countErros += 1
+            return False
+
+    def InsertNubankSection(self):
+        try:
+            # -- TEXTO DA SEÇÃO -- #
+            def InsertSectionText():
+                dataFrame = self.DespesasPagas_df[ self.DespesasPagas_df['Categoria'] == 'Fatura Nubank' ]
+                print(str(dataFrame))
+                # self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
+                # dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
+                # dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
+                # total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist()
+                # total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist()
+                
+                # self.InsertTextHtmlTag(
+                #                         _tag = "p", 
+                #                         _text = f"VALOR TOTAL A SER PAGO: R${dataFrame['Valor'].sum()}.", 
+                #                         _id = "NubankSectionText"
+                #                     )
+                return
+            
+            InsertSectionText()
+
+        except Exception as err:
+            self.logger.error(f'[ERRO] Falha ao inserir sessao (NUBANK) no relatorio. | {str(err)}\n')
             self.countErros += 1
             return False
