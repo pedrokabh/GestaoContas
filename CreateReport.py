@@ -15,7 +15,6 @@ class CreateReport():
 
         # ! TESTE ! #
         if os.path.isfile(".\\Another Archives\\execution.log"):
-            print('LOG REMOVIDO!\n')
             os.remove(".\\Another Archives\\execution.log")
 
         logging.basicConfig(filename=f'.\\Another Archives\\execution.log', level=logging.INFO, format='%(message)s')
@@ -34,7 +33,7 @@ class CreateReport():
         # Criação Relatório.
         self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
         self.soup = self.CreateSoupObject()
-        self.InsertPendingExpensesSection()
+        self.InsertPendingSection()
         self.SaveSoupAsHtml()
         self.logger.info(f'[INFO][SUCESS] Finalizada Montagem do Relatorio.')
 
@@ -137,7 +136,7 @@ class CreateReport():
              
                 self.InsertTextHtmlTag(
                                         _tag = "p", 
-                                        _text = f"VALOR TOTAL A SER PAGO: R${dataFrame['Valor'].sum()}.", 
+                                        _text = f"VALOR TOTAL A SER PAGO: R${round(dataFrame['Valor'].sum(),2)}.", 
                                         _id = "DespesasPendente"
                                     )
                 
@@ -225,7 +224,7 @@ class CreateReport():
 
                     self.soup = self.EditHtmlAtribute( # Adiciona gráfico no template.
                             _tag="img",
-                            _id="OperationsGraphicPendingExpenses",
+                            _id="OperationsBarsGraphic",
                             _atributo="src",
                             _valorAtributo=f"data:image/png;base64,{base64_encoding}",
                         )
@@ -238,41 +237,52 @@ class CreateReport():
             InsertBarsGraphic()
 
             # -- GRÁFICO DE PIZZA DESPESA POR CATEGORIA -- #
-            def InsertPizzaBarGraphic():
+            def InsertPieGraphic():
                 try:
-                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
-                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Responsavel', 'Descrição', 'Operação', 'Situação'])
+                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação']=='Pendente']
+                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Operação', 'Descrição', 'Responsavel', 'Situação'])
                     dataFrame = dataFrame.groupby(['Categoria'], as_index=False)['Valor'].sum()
 
-                    labels = dataFrame['Categoria'].tolist() # Dados para o gráfico de pizza
-                    quantidades = dataFrame['Valor'].tolist()
+                    # Supondo que 'dataFrame' seja o seu DataFrame
+                    categorias = dataFrame['Categoria'].tolist()
+                    valores = dataFrame['Valor'].tolist()
 
-                    plt.pie(quantidades, labels=labels, autopct='%1.1f%%') # Criar o gráfico de pizza
-                    plt.title('CATEGORIAS') # Adicionar um título
-                    
-                    temp_file = io.BytesIO() # Salvar o gráfico temporariamente
+                    # Criando o gráfico de pizza
+                    plt.figure(figsize=(8, 8))
+                    plt.pie(valores, labels=categorias, autopct='%1.1f%%', startangle=140)
+                    plt.title('Despesas por Categorias')
+
+                    # Salvar o gráfico temporariamente
+                    temp_file = io.BytesIO()
                     plt.savefig(temp_file, format='png')
                     temp_file.seek(0)
 
-                    # plt.show() # Exibir o gráfico
+                    # Convertendo o gráfico em base64
                     base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
-                    plt.close() # Fechar o gráfico para liberar recursos
 
-                    self.soup = self.EditHtmlAtribute( # Adiciona gráfico no template.
-                            _tag="img",
-                            _id="PizzaGraphicPendingExpenses",
-                            _atributo="src",
-                            _valorAtributo=f"data:image/png;base64,{base64_encoding}",
-                        )
-                    
-                    self.logger.info('[INFO] Grafico de Barras Criado/Inserido (PendingExpensesSection)')
+                    # Mostrando o gráfico
+                    plt.axis('equal')  # Garante que o gráfico seja desenhado como um círculo
+                    plt.close()
+
+                    self.soup = self.EditHtmlAtribute(
+                        _tag="img",
+                        _id="OperationsPieGraphic",
+                        _atributo="src",
+                        _valorAtributo=f"data:image/png;base64,{base64_encoding}",
+                    )
                     return True
-
+                
                 except Exception as err:
-                    self.logger.error(f'[ERROR] Falha ao criar/inserir grafico de pizza. (PendingExpensesSection) | {err}\n')
+                    self.logger.error(f'[ERRO] Falha ao criar grafico despesas por despesas (DespesasPendentes) | {str(err)}\n')
                     self.countErros += 1
                     return False
-            InsertPizzaBarGraphic()
+
+            InsertPieGraphic()
+
+        except Exception as err:
+            self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
+            self.countErros += 1
+            return False
 
         except Exception as err:
             self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
