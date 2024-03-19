@@ -8,7 +8,7 @@
             "request": "launch",
             "args": [
                 "--XlsxPath",
-                "C:\\Users\\pedro.camara\\Desktop\\GestaoContas\\Another Archives\\Gestão Contas.xlsx"
+                "C:\\Users\\pedro.camara\\Desktop\\GestaoContas\\Gestão Contas.xlsx"
             ],
             "program": "C:\\Users\\pedro.camara\\Desktop\\GestaoContas\\Main.py",
             "console": "integratedTerminal"

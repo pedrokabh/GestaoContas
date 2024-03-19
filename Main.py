@@ -4,12 +4,11 @@ import os
 
 def main(XlsxPath):
 
-    # print(f'Arquivo (Gestão Contas.xlsx) ({XlsxPath})')
     os.system('cls')
     CreateReport(
                     _xlsxPath = XlsxPath,
-                    _templatePath = ".\\report.html",
-                    _destinyFile = "Relatório Gerado.html"
+                    _templatePath = ".\\Templates\\Gestão Contas.html",
+                    _destinyFile = "Execution01.html"
                 )
 
 if __name__ == "__main__":

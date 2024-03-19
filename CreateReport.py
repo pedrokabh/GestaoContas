@@ -14,10 +14,10 @@ class CreateReport():
     def __init__(self, _xlsxPath, _destinyFile, _templatePath):
 
         # ! TESTE ! #
-        if os.path.isfile(".\\Another Archives\\execution.log"):
-            os.remove(".\\Another Archives\\execution.log")
+        if os.path.isfile(".\\execution.log"):
+            os.remove(".\\execution.log")
 
-        logging.basicConfig(filename=f'.\\Another Archives\\execution.log', level=logging.INFO, format='%(message)s')
+        logging.basicConfig(filename=f'.\\execution.log', level=logging.INFO, format='%(message)s')
         
         # Variaveis publicas da classe.
         self.logger = logging.getLogger()
@@ -25,16 +25,16 @@ class CreateReport():
         self.templatePath = _templatePath
         self.XlsxPath = _xlsxPath
         self.nameReport = _destinyFile
-        self.reportDestinyPath = ".\\Generated Reports\\"
-        self.DespesasPagas_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pagas")
+        self.reportDestinyPath = ".\\Execution\\"
+        # self.DespesasPagas_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pagas")
         self.DespesasPendentes_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Despesas Pendentes")
-        self.Carteira_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Carteira")
+        # self.Carteira_df = self.read_excel_sheet( _xlsx_path=_xlsxPath , _sheet_name="Carteira")
 
         # Criação Relatório.
         self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
-        self.soup = self.CreateSoupObject()
+        # self.soup = self.CreateSoupObject()
         self.InsertPendingSection()
-        self.SaveSoupAsHtml()
+        # self.SaveSoupAsHtml()
         self.logger.info(f'[INFO][SUCESS] Finalizada Montagem do Relatorio.')
 
         return
@@ -114,203 +114,114 @@ class CreateReport():
             return False
    
    # -- Criando Seções do Relatório -- #
+
+    def CreateBarsGraphic(self, _df_EixoX, _df_EixoY):
+        try:
+            self.logger.info("[INFO] Criando gráfico de barras...")
+
+            x_pos = range(len(_df_EixoX))
+
+            plt.bar(x_pos, _df_EixoY, align="center", alpha=0.5)
+            plt.xticks(x_pos, _df_EixoX)
+
+            plt.ylabel('R$')
+            plt.title('Despesas Pendentes')
+
+            # plt.xticks([])
+            plt.yticks([])
+
+            ax = plt.gca()
+
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+
+            for i, v in enumerate(_df_EixoY):
+                plt.text(i, v + 0.1, str(v), ha='center')
+            
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            base64_image = base64.b64encode(buffer.read()).decode('utf-8')
+            buffer.close()
+            
+            return base64_image
+        
+        except Exception as err:
+            self.logger.error(f"[ERROR] Falha ao criar grafico de barras. | \n{err}")
+
+    def InsertHtmlTable(self, _soup, _id, _df):
+        try:
+
+            table = _soup.find('table', id=_id)
+            if table is None:
+                raise ValueError(f"[ERROR] Table with id '{_id}' not found")
+
+            tbody = table.find('tbody')
+            if tbody is None:
+                raise ValueError("[ERROR] Table body not found")
+
+            # Convert DataFrame to list of dictionaries
+            data_list = _df.to_dict(orient='records')
+
+            # generating tr
+            for row_data in data_list:
+                row = _soup.new_tag('tr')
+
+                # generating td's in the tr
+                for key in row_data:
+                    cell = _soup.new_tag('td')
+                    cell.string = str(row_data[key]).replace("00:00:00","")
+                    row.append(cell)
+                
+                tbody.append(row)
+
+            return _soup
+
+        except ValueError as err:
+            self.logger.error(f"\n{err}")
+            self.countErros += 1
+            return False
+        except Exception as err:
+            self.logger.error(f"[ERROR] Exception Error ao inserir <table id='{_id}'> | \n{err}")
+            self.countErros += 1
+            return False
+
     def InsertPendingSection(self):
         try:
-            self.InsertTextHtmlTag(
-                _tag="td", _text=f"Relatório Gestão Contas", 
-                _id="HeaderTitle"
-            ) # Inserindo título de cabeçalho.
-
-            self.InsertTextHtmlTag(
-                _tag="td", 
-                _text=f'Este é um e-mail automático, favor não responder. | Relatório gerado em: ({datetime.now().strftime("%d/%m/%Y")})', _id="Footer"
-            ) # Adicionando mensagem de rodapé.
-        
-            # -- TEXTO DA SEÇÃO -- #
-            def InsertSectionText():
-                dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
-                dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
-                dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
-                total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist()
-                total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist()
-             
-                self.InsertTextHtmlTag(
-                                        _tag = "p", 
-                                        _text = f"VALOR TOTAL A SER PAGO: R${round(dataFrame['Valor'].sum(),2)}.", 
-                                        _id = "DespesasPendente"
-                                    )
-                
-                self.InsertTextHtmlTag(
-                                        _tag = "p", 
-                                        _text = f'VALOR TOTAL A SER PAGO PEDRO: R${round(sum(total_pedro), 2)}.', 
-                                        _id = "DespesasPendente1"
-                                    )
-                
-                self.InsertTextHtmlTag(
-                                    _tag='p', 
-                                    _text=f'VALOR TOTAL A SER PAGO TERCEIROS: R${round(sum(total_outros), 2)}.', 
-                                    _id='DespesasPendente2'
-                                )
-                return
-            InsertSectionText()
-
-            # -- TABELA DA SEÇÃO -- #
-            def InsertSectionTable():
-                # Filtra o DataFrame da classe
-                dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
-                dataFrame = dataFrame.drop(columns=['Situação', 'Descrição', 'Faturamento', 'Data Compra'])
-                dataFrame = dataFrame.groupby(['Categoria', 'Operação', 'Responsavel'], as_index=False)['Valor'].sum()
-
-                # Encontra a tag tbody onde os dados serão inseridos
-                tbody_tag = self.soup.find('tbody', {'id': 'TablePendencias'})
-                # Limpa qualquer conteúdo existente na tbody
-                tbody_tag.clear()
-
-                # Loop pelos dados do DataFrame e insere-os na tabela HTML
-                for index, row in dataFrame.iterrows():
-                    tr_tag = self.soup.new_tag('tr')
-                    tbody_tag.append(tr_tag)
-
-                    # Adiciona os valores de Categoria, Operação, Valor e Responsável a cada tr
-                    for column in ['Categoria', 'Operação', 'Valor', 'Responsavel']:
-                        td_tag = self.soup.new_tag('td')
-                        td_tag.string = str(row[column])
-                        tr_tag.append(td_tag)
-
-                return self.soup
-            InsertSectionTable()
-
-            # -- GRÁFICO DE DESPESA POR OPERAÇÕES -- #
-            def InsertBarsGraphic():
-                try:
-                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação']=='Pendente']
-                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Responsavel', 'Situação'])
-                    dataFrame = dataFrame.groupby(['Operação'], as_index=False)['Valor'].sum()
-                    
-                    Operacao = dataFrame['Operação'].tolist() # Dados para o gráfico de barras
-                    Valor = dataFrame['Valor'].tolist()
-                    cores = []
-                    for op in Operacao:
-                        if op == 'Nubank Crédito':
-                            cores.append('#2d69d9')
-                        elif op == 'Pix Nubank':
-                            cores.append('#4c81e3')
-                        elif op == 'Débito Nubank':
-                            cores.append('#6a98ec') 
-                        elif op == 'Boleto Nubank':
-                            cores.append('#89b0f6') 
-                        else:
-                            cores.append('#a7c7ff')  
-
-                    plt.bar(Operacao, Valor, color=cores, linewidth=0) # Criar o gráfico de barras com cores definidas
-                    plt.title('MÉTODO PAGAMENTO') # Adicionar título e rótulos aos eixos
-                    ax = plt.gca() # Desativando Bordas do Gráfico
-                    ax.spines['top'].set_visible(False)
-                    ax.spines['right'].set_visible(False)
-                    ax.spines['bottom'].set_visible(False)
-                    ax.spines['left'].set_visible(False)
-                    plt.yticks([]) # Removendo legenda eixo y
-                    
-                    for i in range(len(Operacao)): # Adicionando os valores acima das barras
-                        plt.text(Operacao[i], Valor[i], str(round(Valor[i],2)), ha='center', va='bottom')
-
-                    temp_file = io.BytesIO() # Salvar o gráfico temporariamente
-                    plt.savefig(temp_file, format='png')
-                    temp_file.seek(0)
-
-                    # plt.show() # Exibir o gráfico
-                    base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
-                    plt.close() # Fechar o gráfico para liberar recursos
-
-                    self.soup = self.EditHtmlAtribute( # Adiciona gráfico no template.
-                            _tag="img",
-                            _id="OperationsBarsGraphic",
-                            _atributo="src",
-                            _valorAtributo=f"data:image/png;base64,{base64_encoding}",
-                        )
-
-                    return True
-                except Exception as err:
-                    self.logger.error(f'[ERRO] Falha ao criar grafico despesas por operação (DespesasPendentes) | {str(err)}\n')
-                    self.countErros += 1
-                    return False
-            InsertBarsGraphic()
-
-            # -- GRÁFICO DE PIZZA DESPESA POR CATEGORIA -- #
-            def InsertPieGraphic():
-                try:
-                    dataFrame = self.DespesasPendentes_df[self.DespesasPendentes_df['Situação']=='Pendente']
-                    dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Operação', 'Descrição', 'Responsavel', 'Situação'])
-                    dataFrame = dataFrame.groupby(['Categoria'], as_index=False)['Valor'].sum()
-
-                    # Supondo que 'dataFrame' seja o seu DataFrame
-                    categorias = dataFrame['Categoria'].tolist()
-                    valores = dataFrame['Valor'].tolist()
-
-                    # Criando o gráfico de pizza
-                    plt.figure(figsize=(8, 8))
-                    plt.pie(valores, labels=categorias, autopct='%1.1f%%', startangle=140)
-                    plt.title('Despesas por Categorias')
-
-                    # Salvar o gráfico temporariamente
-                    temp_file = io.BytesIO()
-                    plt.savefig(temp_file, format='png')
-                    temp_file.seek(0)
-
-                    # Convertendo o gráfico em base64
-                    base64_encoding = base64.b64encode(temp_file.read()).decode('utf-8')
-
-                    # Mostrando o gráfico
-                    plt.axis('equal')  # Garante que o gráfico seja desenhado como um círculo
-                    plt.close()
-
-                    self.soup = self.EditHtmlAtribute(
-                        _tag="img",
-                        _id="OperationsPieGraphic",
-                        _atributo="src",
-                        _valorAtributo=f"data:image/png;base64,{base64_encoding}",
-                    )
-                    return True
-                
-                except Exception as err:
-                    self.logger.error(f'[ERRO] Falha ao criar grafico despesas por despesas (DespesasPendentes) | {str(err)}\n')
-                    self.countErros += 1
-                    return False
-
-            InsertPieGraphic()
-
-        except Exception as err:
-            self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
-            self.countErros += 1
-            return False
-
-        except Exception as err:
-            self.logger.error(f'[ERRO] Falha ao inserir sessao (DespesasPendentes) no relatorio. | {str(err)}\n')
-            self.countErros += 1
-            return False
-
-    def InsertNubankSection(self):
-        try:
-            # -- TEXTO DA SEÇÃO -- #
-            def InsertSectionText():
-                dataFrame = self.DespesasPagas_df[ self.DespesasPagas_df['Categoria'] == 'Fatura Nubank' ]
-                print(str(dataFrame))
-                # self.DespesasPendentes_df[self.DespesasPendentes_df['Situação'] == 'Pendente']
-                # dataFrame = dataFrame.drop(columns=['Faturamento', 'Data Compra', 'Categoria', 'Descrição', 'Operação', 'Situação'])
-                # dataFrame = dataFrame.groupby('Responsavel', as_index=False)['Valor'].sum()
-                # total_pedro = (dataFrame[dataFrame['Responsavel'] == 'Pedro']['Valor']).tolist()
-                # total_outros = (dataFrame[dataFrame['Responsavel'] != 'Pedro']['Valor']).tolist()
-                
-                # self.InsertTextHtmlTag(
-                #                         _tag = "p", 
-                #                         _text = f"VALOR TOTAL A SER PAGO: R${dataFrame['Valor'].sum()}.", 
-                #                         _id = "NubankSectionText"
-                #                     )
-                return
+            self.logger.info("[INFO] Gerando sessao (DESPESAS PENDENTES)...")
             
-            InsertSectionText()
+            despesasPendentes = self.DespesasPendentes_df
+
+            # despesasFuturas = despesasPendentes[despesasPendentes['Situação'] == "Futura"]
+            # despesasFuturas = despesasFuturas.drop(columns=['Situação','Responsavel','Data Compra','Operação'])
+            # despesasFuturas['Faturamento'] = pd.to_datetime(despesasFuturas['Faturamento'], format='%m/%d/%Y')
+            # despesasFuturas = despesasFuturas[['Descrição', 'Faturamento', 'Categoria', 'Valor']]
+
+            # self.soup = self.InsertHtmlTable(
+            #     _soup = self.soup,
+            #     _id = "TablePendingFuture",
+            #     _df = despesasFuturas
+            # )
+            
+            # self.soup = self.InsertTextHtmlTag(
+            #     _tag = "p", 
+            #     _text = "Despesas futuras a serem pagas abaixo.", 
+            #     _id = "Pending-Text-Right"
+            # )
+            # del despesasFuturas
+            
+            despesasFuturas = despesasPendentes[despesasPendentes['Situação'] == "Pendente"]
+            despesasFuturas = despesasFuturas.groupby('Operação').agg({'Valor': 'sum'}) # Operação se torna index e não uma coluna.
+
+            base64 = 'data:image/png;base64,' + self.CreateBarsGraphic(
+                _df_EixoX = despesasFuturas.index.tolist(), 
+                _df_EixoY = despesasFuturas['Valor'].tolist()
+            )
+            print(base64)
+            del despesasFuturas
 
         except Exception as err:
-            self.logger.error(f'[ERRO] Falha ao inserir sessao (NUBANK) no relatorio. | {str(err)}\n')
+            self.logger.error(f"[ERROR] Falha ao gerar secao (DESPESAS PENDENTES) | {err}")
             self.countErros += 1
-            return False
