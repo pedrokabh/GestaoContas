@@ -42,17 +42,23 @@
     .Section-Content{
         display: flex;
         text-align: center;
+        justify-content: center;
+        align-items: center;
         background-color: aliceblue;
     }
 
     .Sub-Section-Left{
-        width: 50%;
-        padding-right: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* background-color: aqua; */
     }
 
     .Sub-Section-Right{
-        width: 50%;
-        padding-left: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* background-color: brown; */
     }
 
     .table{
@@ -106,14 +112,27 @@
                 </div>
                 
                 <div class="Section-Content">
-                    <div class="Sub-Section-Left">
-                        <p id="Pending-Left-Text">{text}</p>
-                    </div>
-                    
-                    <div class="Sub-Section-Right">
+                    <div class="Sub-Section-Left" style="width: 30%; justify-content: flex-end;" >
+                        <div style="text-align: center;">
+                            <h4 style="margin: 0;">TOTAL</h4>
+                            <h4 id="totalPending" style="margin: 0;">R$ 00.00</h4>
+
+                            <br style="height: 10px;">
+                            
+                            <h4 style="margin-top: 10px; margin-bottom: 0px;">TOTAL PEDRO</h4>
+                            <h4 id="totalPedroPending" style="margin: 0;">R$ 00.00</h4>
+                            
+                            <br style="height: 10px;">
+
+                            <h4 style="margin-top: 10px; margin-bottom: 0px;">TOTAL OUTROS</h4>
+                            <h4 id="totalOthersPending" style="margin: 0;">R$ 00.00</h4>
+                        </div>
+                    </div> 
+                    <!-- Center Section --> 
+                    <div class="Sub-Section-Right" style="width: 70%;">
                         <div class="table">
-                            <p id="Pending-Text-Right">{text}</p>
-                            <table id="TablePendingFuture">
+                            <p id="Pending-Text-Right">Abaixo encontra-se despesas futuras que deve-se atentar para o seu pagamento.</p>
+                            <table id="TablePendingFuture" border="1">
                                 <thead>
                                     <tr>
                                         <th>Descrição</th>
@@ -128,27 +147,23 @@
                         </div>
                     </div>
                 </div>
+                
+                <br style="height: 10px;">
+
+                <div class="Section-Content">
+                    <div class="Sub-Section-Left" style="width: 50%; display: block; align-items: center;" >
+                        <h5>TOTAL POR OPERAÇÃO</h5>
+                        <img width="500" height="200" src="" id="BarsGraphicPending" alt="BarsGraphicPending">
+                    </div>
+                    <!-- Center Section --> 
+                    <div class="Sub-Section-Right" style="width: 50%;">
+                        <img src="" alt="PizzaGraphicPending">
+                    </div>
+                </div>
             </div>
             
             <!-- DESPESAS PAGAS -->
-            <div>
-                <div class="Section-Title">
-                    <h2>DESPESAS PAGAS</h2>
-                </div>
-    
-                <div class="Section-Content">
-                    <div class="Sub-Section-Left">
-                        <p>{text}</p>
-                    </div>
-                    
-                    <div class="Sub-Section-Right">
-                        <p>{text}</p>
-                    </div>
-                </div>
-            </div>
             
-        </div>
-
         <footer>
             <p>&copy; 2024 | Relatório gerado por <a href="https://github.com/pedrokabh">GitHub</a>.</p>
         </footer>

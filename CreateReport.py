@@ -32,9 +32,9 @@ class CreateReport():
 
         # Criação Relatório.
         self.logger.info(f'[INFO] Iniciando Montagem do Relatorio.')
-        # self.soup = self.CreateSoupObject()
+        self.soup = self.CreateSoupObject()
         self.InsertPendingSection()
-        # self.SaveSoupAsHtml()
+        self.SaveSoupAsHtml()
         self.logger.info(f'[INFO][SUCESS] Finalizada Montagem do Relatorio.')
 
         return
@@ -75,7 +75,7 @@ class CreateReport():
             with open(file_path, "w", encoding="utf-8") as file: # Escrevendo o relatório modificado no arquivo HTML
                 file.write(str(self.soup))
             
-            return self.logger.info(f'[INFO] Relatorio Pronto em ({file_path}).')
+            return self.logger.info(f'[PATH] Relatorio Pronto em ({file_path}).')
 
         except Exception as err:
             self.logger.error(f"[ERROR] falha ao salvar BeatifulSoup como arquivo.html | {err}\n")
@@ -115,22 +115,26 @@ class CreateReport():
    
    # -- Criando Seções do Relatório -- #
 
-    def CreateBarsGraphic(self, _df_EixoX, _df_EixoY):
+    def CreateBarsGraphic(self, _df_EixoX, _df_EixoY, _title=False):
         try:
-            self.logger.info("[INFO] Criando gráfico de barras...")
+            self.logger.info("[INFO] Criando grafico de barras...")
 
             x_pos = range(len(_df_EixoX))
 
+            plt.figure(facecolor='aliceblue')
             plt.bar(x_pos, _df_EixoY, align="center", alpha=0.5)
             plt.xticks(x_pos, _df_EixoX)
 
             plt.ylabel('R$')
-            plt.title('Despesas Pendentes')
+            
+            if _title:
+                plt.title(_title)
 
-            # plt.xticks([])
             plt.yticks([])
 
             ax = plt.gca()
+
+            ax.set_facecolor('aliceblue')
 
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
@@ -138,7 +142,7 @@ class CreateReport():
             ax.spines['bottom'].set_visible(False)
 
             for i, v in enumerate(_df_EixoY):
-                plt.text(i, v + 0.1, str(v), ha='center')
+                plt.text(i, v + 0.05 * max(_df_EixoY), str(v), ha='center')
             
             buffer = io.BytesIO()
             plt.savefig(buffer, format='png')
@@ -192,35 +196,49 @@ class CreateReport():
         try:
             self.logger.info("[INFO] Gerando sessao (DESPESAS PENDENTES)...")
             
+            #  1 -- pegando dados das despesas pendentes sem filtros. -- 
             despesasPendentes = self.DespesasPendentes_df
 
-            # despesasFuturas = despesasPendentes[despesasPendentes['Situação'] == "Futura"]
-            # despesasFuturas = despesasFuturas.drop(columns=['Situação','Responsavel','Data Compra','Operação'])
-            # despesasFuturas['Faturamento'] = pd.to_datetime(despesasFuturas['Faturamento'], format='%m/%d/%Y')
-            # despesasFuturas = despesasFuturas[['Descrição', 'Faturamento', 'Categoria', 'Valor']]
+            # 2 -- calculando textos total/responsavel. -- 
+            total = despesasPendentes[despesasPendentes['Situação'] == "Pendente"]
+            totalPedro = total[total['Responsavel'] == "Pedro"]
+            totalOthers = total[total['Responsavel'] != "Pedro"]
+            self.InsertTextHtmlTag( _tag = 'h4', _text = f"R$ {str(round(total['Valor'].sum(),2))}",
+                                    _id = 'totalPending')
+            self.InsertTextHtmlTag( _tag = 'h4', _text = f"R$ {str(round(totalPedro['Valor'].sum(),2))}",
+                                    _id = 'totalPedroPending')
+            self.InsertTextHtmlTag( _tag = 'h4', _text = f"R$ {str(round(totalOthers['Valor'].sum(),2))}",
+                                    _id = 'totalOthersPending')
+            del total, totalPedro, totalOthers
 
-            # self.soup = self.InsertHtmlTable(
-            #     _soup = self.soup,
-            #     _id = "TablePendingFuture",
-            #     _df = despesasFuturas
-            # )
-            
-            # self.soup = self.InsertTextHtmlTag(
-            #     _tag = "p", 
-            #     _text = "Despesas futuras a serem pagas abaixo.", 
-            #     _id = "Pending-Text-Right"
-            # )
-            # del despesasFuturas
-            
-            despesasFuturas = despesasPendentes[despesasPendentes['Situação'] == "Pendente"]
-            despesasFuturas = despesasFuturas.groupby('Operação').agg({'Valor': 'sum'}) # Operação se torna index e não uma coluna.
-
-            base64 = 'data:image/png;base64,' + self.CreateBarsGraphic(
-                _df_EixoX = despesasFuturas.index.tolist(), 
-                _df_EixoY = despesasFuturas['Valor'].tolist()
+            # 3 -- Pegando dados e inserindo na tabela despesa futura -- 
+            despesasFuturas = despesasPendentes[despesasPendentes['Situação'] == "Futura"] 
+            despesasFuturas = despesasFuturas.drop(columns=['Situação','Responsavel','Data Compra','Operação'])
+            despesasFuturas['Faturamento'] = pd.to_datetime(despesasFuturas['Faturamento'], format='%m/%d/%Y')
+            despesasFuturas = despesasFuturas[['Descrição', 'Faturamento', 'Categoria', 'Valor']]
+            self.soup = self.InsertHtmlTable(
+                _soup = self.soup,
+                _id = "TablePendingFuture",
+                _df = despesasFuturas
             )
-            print(base64)
             del despesasFuturas
+            
+            # 4 -- Criando gráfico de barras Operação/Total --
+            despesasAtivas = despesasPendentes[despesasPendentes['Situação'] == "Pendente"]
+            despesasAtivas = despesasAtivas.groupby('Operação').agg({'Valor': 'sum'}) # Operação se torna index e não uma coluna.
+            base64 = 'data:image/png;base64,' + self.CreateBarsGraphic(
+                _df_EixoX = despesasAtivas.index.tolist(), # Operação
+                _df_EixoY = despesasAtivas['Valor'].tolist() # Total
+            )
+            self.EditHtmlAtribute(
+                _tag="img", 
+                _id="BarsGraphicPending", 
+                _atributo="src",
+                _valorAtributo=f"{base64}"
+            )
+            del despesasAtivas, base64
+
+            self.logger.info("[INFO] Secao (DESPESAS PENDENTES) inserida com sucesso.")
 
         except Exception as err:
             self.logger.error(f"[ERROR] Falha ao gerar secao (DESPESAS PENDENTES) | {err}")

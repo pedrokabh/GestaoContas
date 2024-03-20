@@ -1,5 +1,12 @@
 [INFO] Data Frame (Despesas Pendentes) Criado com sucesso.
 [INFO] Iniciando Montagem do Relatorio.
+[INFO] Criado Objeto BeatifulSoup.
 [INFO] Gerando sessao (DESPESAS PENDENTES)...
-[INFO] Criando gráfico de barras...
+[INFO] Texto inserido na tag com sucesso. | <h4 id='totalPending'>
+[INFO] Texto inserido na tag com sucesso. | <h4 id='totalPedroPending'>
+[INFO] Texto inserido na tag com sucesso. | <h4 id='totalOthersPending'>
+[INFO] Criando grafico de barras...
+[INFO] Atributo 'src' alterado com sucesso. | <img id='BarsGraphicPending'>
+[INFO] Secao (DESPESAS PENDENTES) inserida com sucesso.
+[PATH] Relatorio Pronto em (.\Execution\Execution01.html).
 [INFO][SUCESS] Finalizada Montagem do Relatorio.
