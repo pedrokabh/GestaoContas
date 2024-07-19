@@ -29,23 +29,6 @@ def definirCategoriaPorDescricao(description, category, operation, value):
         # Realizar as verificações de contas do mesmo cpf.
         if any(term in description for term in ["42963-0","15445551-3","1001524-3","56681-0","40271-0","410818720-6","52838456-4","32038553-1","18325874-3"]):
               category = "Transferência Entre Contas"
-        #     category = "Conta Itaú (42963-0)"
-        # elif any(term in description for term in ["15445551-3"]):
-        #     category = "Conta Itaú (15445551-3)"
-        # elif any(term in description for term in ["1001524-3"]):
-        #     category = "Conta Bradesco (1001524-3)"
-        # elif any(term in description for term in ["56681-0"]):
-        #     category = "Conta Bradesco (56681-0)"
-        # elif any(term in description for term in ["40271-0"]):
-        #     category = "Conta Bradesco (40271-0)"
-        # elif any(term in description for term in ["410818720-6"]):
-        #     category = "Conta Nubank PJ (410818720-6)"
-        # elif any(term in description for term in ["52838456-4"]):
-        #     category = "Conta Nubank PF (52838456-4)"
-        # elif any(term in description for term in ["32038553-1"]):
-        #     category = "Conta Neon (32038553-1)"
-        # elif any(term in description for term in ["18325874-3"]):
-        #     category = "Conta Dock (18325874-3)"
         elif any(term in description for term in ["BANCO BRADESCO S.A"]) and operation == "Boleto":
             operation = "Fatura Cartão Crédito"
             category = "Cartão Crédito (Bradesco)"
@@ -100,8 +83,6 @@ def definirCategoriaPorDescricao(description, category, operation, value):
         elif any(term in description for term in ["Leo Gas"]):
             category = "Gas"
         
-        if category == "NAO IDENTIFICADA":
-            category = "Outros"
         
         if category == "transporte":
             category = "Transporte"
@@ -155,8 +136,8 @@ def returnFaturasUnificadasNubank(folder_path):
                 category = str(dado[1])
                 description = dado[2]
                 value = str(dado[3].replace(".",","))
-                operation = "Despesa Cartão Crédito (Nubank)"
-                movement = "Despesa"
+                operation = None
+                movement = None
 
                 if category == "payment" and description == "Pagamento recebido":
                     continue
@@ -167,9 +148,8 @@ def returnFaturasUnificadasNubank(folder_path):
                         "DATA": date,
                         "VALOR": value,
                         "DESCRIÇÃO": description,
-                        "CATEGORIA": category,
-                        "OPERAÇÃO": operation,
-                        "MOVIMENTAÇÃO": movement,
+                        "CATEGORIA AUTOMAÇÃO": category,
+                        "CATEGORIA SUGERIDA": None,
                         "ARCHIVE": str(arquivo).replace(".csv","")
                     }
 
@@ -206,8 +186,8 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
                 # Tratando dados
                 operation = description.split('-')[0] # Extraindo operação da descrição.
                 description = '-'.join(description.split(' - ')[1:]) # Tirando a operação da STRING, pois já foi extraída anteriormente.
-                category = "NAO IDENTIFICADA"
-                movement = "NAO IDENTIFICADO"
+                category = None
+                movement = None
 
                 # Filtrando e identificando as RECEITAS.
                 if "Crédito em conta" in operation:
@@ -233,6 +213,21 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
                     category = "Aplicação"
                     movement = "Receita"
                     description = "Rendimento Conta Nubank"
+                elif "Aplicação RDB" in operation or "Aplicação RDB" in description:
+                    operation = "Investimento"
+                    category = "Aplicação"
+                    description = "Aplicação RDB"
+                    movement = "Despesa"
+                elif "Resgate RDB" in operation or "Resgate RDB" in description:
+                    operation = "Investimento"
+                    category = "Aplicação"
+                    description = "Resgate RDB"
+                    movement = "Receita"
+                elif "Rendimento Dinheiro Conta Nubank" in description:
+                    operation = "Investimento"
+                    category = "Aplicação"
+                    description = description
+                    movement = "Receita"
                 
                 # Filtrando e identificando as DESPESAS.
                 if "Transferência enviada pelo Pix" in operation:
@@ -260,17 +255,21 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
 
                 # Identificando categoria baseado na DESCRIÇÃO.
                 category, description, operation, value = definirCategoriaPorDescricao(category=category, description=description, operation=operation, value=value)
-
+                
                 dictonary = {
                     "DATA": date,
                     "VALOR": value,
                     "DESCRIÇÃO": description,
-                    "CATEGORIA": category,
+                    "CATEGORIA AUTOMAÇÃO": category,
+                    "CATEGORIA SUGERIDA": None,
                     "OPERAÇÃO": operation,
                     "MOVIMENTAÇÃO": movement,
                     "ARCHIVE": str(arquivo).replace(".csv","")
                 }
                 df_extratos_unificados.append(dictonary)
+                date = None
+                value = None
+                description = None
 
         df_extratos_unificados = pd.DataFrame(df_extratos_unificados)
         return df_extratos_unificados
@@ -282,18 +281,15 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
 ## -- EXEC -- ##
 try:
     os.system('cls')
-    # diretorio_extrato_pj = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\Gestão Contas\Dados de Contas\Dados Nubank\Extrato Nubank PJ 410818720-6"
-    diretorio_extrato_pf = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\Gestão Contas\Dados de Contas\Dados Nubank\Extrato Nubank PF 52838456-4"
-    # diretorio_fatura_pf  = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\Gestão Contas\Dados de Contas\Dados Nubank\Faturas Nubank PF"
+    diretorio_extrato_pj = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\Executar PJ"
+    diretorio_extrato_pf = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\Executar PF"
+    # diretorio_fatura_pf  = ".\\Executar Fatura"
 
     df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=diretorio_extrato_pf)
-    df_extratos.to_csv("ExtratosUnificadosNubankPF.csv", index=False)
+    df_extratos.to_csv(r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\ExtratosUnificadosNubankPF.csv", index=False)
 
     # df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=diretorio_extrato_pj)
-    # df_extratos.to_csv("ExtratosUnificadosNubankPJ.csv", index=False)
-
-    # df_faturas = returnFaturasUnificadasNubank(folder_path=diretorio_fatura_pf)
-    # df_faturas.to_csv("FaturasUnificadasNubankPF.csv", index=False)
+    # df_extratos.to_csv(r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\ExtratosUnificadosNubankPJ.csv", index=False)
 
 except Exception as err:
     print(f"Error Execution ->\n{err}")
