@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import csv
 
+## --- VARIAVEL DE EXECUÇÃO --- #
+execution = "Fatura PF"
+
 def listar_arquivos_csv(diretorio):
     try:
         arquivos_csv = []
@@ -280,16 +283,20 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
 
 ## -- EXEC -- ##
 try:
-    os.system('cls')
-    diretorio_extrato_pj = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\Executar PJ"
-    diretorio_extrato_pf = r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\Executar PF"
-    # diretorio_fatura_pf  = ".\\Executar Fatura"
-
-    df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=diretorio_extrato_pf)
-    df_extratos.to_csv(r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\ExtratosUnificadosNubankPF.csv", index=False)
-
-    # df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=diretorio_extrato_pj)
-    # df_extratos.to_csv(r"C:\Users\pedro\OneDrive\Área de Trabalho\PowerBI\GestaoContas\Dados de Contas\Dados Nubank\Automação Nubank\ExtratosUnificadosNubankPJ.csv", index=False)
+    if execution == "PF":
+        directory = r".\Executar PF"
+        df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=directory)
+        df_extratos.to_csv(r".\ExtratoProcessadoNubankPF.csv", index=False)
+    elif execution == "PJ":
+        directory = r".\Executar PJ"
+        df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=directory)
+        df_extratos.to_csv(r".\ExtratoProcessadoNubankPJ.csv", index=False)
+    elif execution == "Fatura PF":
+        directory = r".\Fatura PF"
+        df_extratos = returnFaturasUnificadasNubank(folder_path=directory)
+        df_extratos.to_csv(r".\FaturaProcessadaNubankPF.csv", index=False)
+    else:
+        print("Opção não identificada.")
 
 except Exception as err:
     print(f"Error Execution ->\n{err}")

@@ -812,3 +812,6 @@ DATA,VALOR,DESCRIÇÃO,CATEGORIA AUTOMAÇÃO,CATEGORIA SUGERIDA,ARCHIVE
 2022-03-14,"-1,32",Desconto Antecipação Jus*Auto Escola Lider,Carro,Carro,nubank-2022-04
 2023-11-07,"-24,35",Crédito de rotativo,Outras Taxas,Taxas/Imposto,nubank-2023-12
 2023-12-07,"-34,02",Crédito de rotativo,Outras Taxas,Taxas/Imposto,nubank-2024-01
+2024-06-30,"177,8",Km Auto Center Bauru - Parcela 2/10,Carro,,nubank-2024-08
+2024-06-30,"-19,9","Estorno de ""Amazonprimebr""",Reembolso,,nubank-2024-08
+2024-06-30,"19,9",Amazonprimebr,Assinaturas,,nubank-2024-08
