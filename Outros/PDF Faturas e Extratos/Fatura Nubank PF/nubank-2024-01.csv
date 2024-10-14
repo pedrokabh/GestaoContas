@@ -1,0 +1,32 @@
+date,category,title,amount
+2023-12-30,serviços,If*Ifoodpos,18.99
+2023-12-28,loan_revolving_interest,Juros de rotativo,5.51
+2023-12-28,loan_revolving_tax,IOF de rotativo,0.22
+2023-12-28,transporte,Uber *Uber *Trip,12.96
+2023-12-27,charge,Eduardo Henrique Custodio Rodrigues,30.97
+2023-12-23,transporte,Posto Cruzeiro do Sul,30.00
+2023-12-23,restaurante,Joselito Emporio e Bot,77.37
+2023-12-21,charge,Wesley Gomes de Oliveira,20.98
+2023-12-21,transporte,Posto Cruzeiro do Sul,30.00
+2023-12-18,charge,Thales Moreira Luiz Jafar,6.34
+2023-12-16,charge,TELEFONICA BRASIL S A ,45.66
+2023-12-16,charge,Fabricio Lene de Jesus,10.62
+2023-12-15,transporte,Posto Cruzeiro do Sul,40.00
+2023-12-12,transporte,Uber *Uber *Trip,12.91
+2023-12-10,charge,Carlos Junio Ferreira da Silva,21.58
+2023-12-09,supermercado,Villefort,104.48
+2023-12-08,charge,Guilherme Miranda Alves,10.30
+2023-12-08,restaurante,Pizzaria Quatro Sabore,44.00
+2023-12-08,charge,Eduardo Henrique Custodio Rodrigues,29.88
+2023-12-08,charge,Leonardo Almeida Ambrosio,32.78
+2023-12-08,charge,Carlos Junio Ferreira Da Silva,22.03
+2023-12-07,restaurante,Pag*Janicecristina,4.00
+2023-12-07,loan_revolving,Saldo em rotativo,34.02
+2023-12-07,loan_revolving_transitory,Crédito de rotativo,-34.02
+2023-12-07,payment,Pagamento recebido,-510.80
+2023-12-04,transporte,Posto Cruzeiro do Sul,30.00
+2023-12-04,restaurante,Pizzaria Quatro Sabore,23.75
+2023-12-03,transporte,Pag*Unidadeitaupower,11.00
+2023-12-03,restaurante,Mc Donalds Lj Ipz,33.80
+2023-12-03,restaurante,Fulldarin,64.95
+2023-12-02,transporte,Posto de Combustiveis,50.00
