@@ -4,6 +4,8 @@ import csv
 
 ## --- VARIAVEL DE EXECUÇÃO --- #
 execution = "Fatura PF"
+directory = f"{os.getcwd()}\\Outros\\Automação Nubank\\"
+print(f"[Directory] {directory}")
 
 def listar_arquivos_csv(diretorio):
     try:
@@ -284,17 +286,17 @@ def returnExtratoUnificadoNubank(diretorio_extratos):
 ## -- EXEC -- ##
 try:
     if execution == "PF":
-        directory = r".\Executar PF"
         df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=directory)
-        df_extratos.to_csv(r".\ExtratoProcessadoNubankPF.csv", index=False)
+        df_extratos.to_excel(f"{directory}\ExtratoProcessadoNubankPF.xlsx", index=False)
+        # df_extratos.to_csv(f"{directory}\ExtratoProcessadoNubankPF.csv", index=False)
     elif execution == "PJ":
-        directory = r".\Executar PJ"
         df_extratos = returnExtratoUnificadoNubank(diretorio_extratos=directory)
-        df_extratos.to_csv(r".\ExtratoProcessadoNubankPJ.csv", index=False)
+        df_extratos.to_excel(f"{directory}\ExtratoProcessadoNubankPJ.xlsx", index=False)
+        # df_extratos.to_csv(f"{directory}\ExtratoProcessadoNubankPJ.csv", index=False)
     elif execution == "Fatura PF":
-        directory = r".\Fatura PF"
         df_extratos = returnFaturasUnificadasNubank(folder_path=directory)
-        df_extratos.to_csv(r".\FaturaProcessadaNubankPF.csv", index=False)
+        df_extratos.to_excel(f"{directory}\FaturaProcessadaNubankPF.xlsx", index=False)
+        # df_extratos.to_csv(f"{directory}\FaturaProcessadaNubankPF.csv", index=False)
     else:
         print("Opção não identificada.")
 
