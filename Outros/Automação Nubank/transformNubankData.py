@@ -1,4 +1,4 @@
-import os
+import os, sys
 import pandas as pd
 import csv
 
@@ -302,5 +302,5 @@ try:
 
 except Exception as err:
     print(f"Error Execution ->\n{err}")
-    
+    sys.exit(0)
 ## -- -- FIM EXECUÇÃO -- -- ##
