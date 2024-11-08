@@ -3,7 +3,7 @@ import pandas as pd
 import csv
 
 ## --- VARIAVEL DE EXECUÇÃO --- #
-execution = "Fatura PF"
+execution = "PF"
 directory = f"{os.getcwd()}\\Outros\\Automação Nubank\\"
 print(f"[Directory] {directory}")
 
